@@ -1,0 +1,34 @@
+<project name="BuildSpark" basedir="." default="usage">
+
+  <target name="usage">
+    <echo message="Usage Instructions:"/>
+    <echo message="ant minify - Concatinate and minify components"/>
+    <echo message="ant concat - Concatinate without minification"/>
+  </target>
+
+  <target name="minify">
+    <!-- Minify JavaScript files in a particular order. -->
+    <taskdef name="jsmin"
+      classname="net.matthaynes.jsmin.JSMin_Task"
+      classpath="${basedir}/jsmin.0.2.4.jar"/>
+
+    <antcall target="concat"/>
+    <delete file="${basedir}/../lib/spark.min.js" quiet="true"/>
+    <jsmin srcfile="${basedir}/../lib/spark.js" suffix="true" />
+  </target>
+
+  <target name="concat">
+    <!-- Concatinate JavaScript files in a particular order. -->
+    <delete file="${basedir}/../lib/spark.js" quiet="true"/>
+    <delete file="${basedir}/../lib/spark.min.js" quiet="true"/>
+
+    <concat destfile="${basedir}/../lib/spark.js">
+      <filelist dir="${basedir}/"
+         files="spark.js,spark.util.js,spark.loader.js,spark.field.js,spark.form.js,spark.grid.js,spark.io.js,spark.nav.js,spark.notify.js"/>
+    </concat>
+
+    <copy file="${basedir}/../lib/spark.js"
+          toFile="${basedir}/../lib/spark.min.js"/>
+  </target>
+
+</project>
