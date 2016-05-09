@@ -91,8 +91,8 @@ if (window.spark && jQuery && kendo) {
             if ($(selector).length) {
                 return $(selector).kendoDropDownList($.extend({
                     dataSource: this.USStateList,
-                     optionLabel: "Select",
-                     valuePrimitive: true // Allows initial value to be nullable.
+                    optionLabel: "Select",
+                    valuePrimitive: true // Allows initial value to be nullable.
                 }, options)).getKendoDropDownList();
             }
             return null;

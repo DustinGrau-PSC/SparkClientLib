@@ -48,7 +48,7 @@
             /** Initialization Functions **/
 
             createSession: function(serviceURI, catalogURI, authModel){
-                if (!jsdoSession) {
+            	if (!jsdoSession) {
                     jsdoSession = new progress.data.JSDOSession({
                         // anonymous = progress.data.Session.AUTH_TYPE_ANON
                         // basic-* = progress.data.Session.AUTH_TYPE_BASIC
@@ -59,18 +59,13 @@
                 }
 
                 if (jsdoSession.loginResult !== progress.data.Session.LOGIN_SUCCESS) {
-                    return jsdoSession.login(jsdoUsername || "anonymous", jsdoPassword || "")
+                	// Obtain cached credentials, or provide defaults for anonymous use.
+                	var username = jsdoUsername || "anonymous";
+                	var password = jsdoPassword || "";
+                	return jsdoSession.login(username, password)
                         .then(function(){
-                            jsdoSession.catalogLoaded = {};
-                            jsdoSession.catalogLoaded[catalogURI] = false;
-                            return jsdoSession.addCatalog(catalogURI, jsdoUsername || "anonymous", jsdoPassword || "")
-                                .then(function(session, result, responses){
-                                    // Denote when a catalog has been loaded.
-                                    $.each(responses, function(i, response){
-                                        jsdoSession.catalogLoaded[response.catalogURI] = (response.result ? true : false);
-                                    });
-                                    return responses;
-                                });
+                        	// Load the catalogs as part of the session creation process.
+                        	return window.spark.loadCatalogs(catalogURI);
                         }, function(){
                             return "Unable to reach the REST adapter to establish a session.";
                         });
@@ -79,6 +74,32 @@
                     promise.resolve("loggedIn");
                     return promise;
                 }
+            },
+
+            loadCatalogs: function(catalogURI){
+            	// Add a property to track the catalogs to be loaded.
+                jsdoSession.catalogLoaded = {};
+                if (typeof catalogURI == "string") {
+                	jsdoSession.catalogLoaded[catalogURI] = false;
+                } else if (catalogURI instanceof Array) {
+                	$.each(catalogURI, function(i, catalog){
+                		jsdoSession.catalogLoaded[catalog] = false;
+                	});
+                }
+				// Load one (string) or more (array) catalogs to this session.
+            	var username = jsdoUsername || "anonymous";
+            	var password = jsdoPassword || "";
+                return jsdoSession.addCatalog(catalogURI, username, password)
+                    .then(function(session, result, responses){
+                        // Denote when a catalog has been loaded.
+                        $.each(responses, function(i, response){
+                        	jsdoSession.catalogLoaded[response.catalogURI] = (response.result ? true : false);
+                        });
+                        return responses;
+                    }, function(session, result, responses){
+                    	console.log("Response:", responses);
+                    	return "Failed to load catalog(s).";
+                    });
             },
 
             createJSDO: function(resourceName){
@@ -128,7 +149,7 @@
             /**  JSDO methods for CRUD operation **/
 
             createJSDODataSource: function(resourceName, options){
-                var jsdo = spark.createJSDO(resourceName);
+                var jsdo = window.spark.createJSDO(resourceName);
 
                 // Determine capabilities for READ operation.
                 var jsdoProps = jsdo.getMethodProperties("read");

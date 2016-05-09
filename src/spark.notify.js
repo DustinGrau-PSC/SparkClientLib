@@ -2,32 +2,31 @@
 if (window.spark && jQuery && kendo) {
 
     window.spark.notify = (function($, kendo){
-        var _notificationObj = null; // Last notification object instance.
-
         return {
             setNotificationArea: function(selector, options){
-                selector = selector || "#staticNotification";
+                var notificationObj = null; // Notification object instance.
                 if ($(selector).length) {
-                    _notificationObj = $(selector).kendoNotification($.extend({
-                        appendTo: "#notificationArea", // Element that gets new messages.
-                        autoHideAfter: 20000, // Hide the message after 20 seconds.
+                    // Create a new notification widget.
+                    notificationObj = $(selector).kendoNotification($.extend({
+                        appendTo: selector, // Element that gets messages.
+                        autoHideAfter: 30000, // Hide the message after 30 seconds.
                         button: true // Display dismissal button in message area.
                     }, options)).getKendoNotification();
-                } else {
-                    _notificationObj = null; // Reset/clear last-known area.
-                }
-                return _notificationObj;
-            },
 
-            showStaticNotification: function(message, type){
-                if (_notificationObj) {
-                    _notificationObj.show(message, type || "info");
-                    var container = $(_notificationObj.options.appendTo);
-                    if (container.length) {
-                        container.scrollTop(container[0].scrollHeight);
-                    }
+                    // Add a method to display a message and scroll into view.
+                    notificationObj.showNotification = function(message, type){
+                        if (this) {
+                            // Type is "info" (default), "success", "warning", or "error".
+                            this.show(message || "", type || "info");
+                            var container = $(this.options.appendTo);
+                            if (container.length) {
+                                container.scrollTop(container[0].scrollHeight);
+                            }
+                        }
+                    };
                 }
-            }
+                return notificationObj;
+            },
         };
     })(jQuery, kendo);
 
