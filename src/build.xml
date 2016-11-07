@@ -4,6 +4,7 @@
     <echo message="Usage Instructions:"/>
     <echo message="ant minify - Concatinate and minify components"/>
     <echo message="ant concat - Concatinate without minification"/>
+    <echo message="ant document - Build documentation from JS code"/>
   </target>
 
   <target name="minify">
@@ -29,6 +30,20 @@
 
     <copy file="${basedir}/../lib/spark.js"
           toFile="${basedir}/../lib/spark.min.js"/>
+  </target>
+
+  <target name="document">
+    <!-- Document source JavaScript files using JSDoc3. -->
+    <property environment="env"/>
+    <property name="jsdoc.home" value="C:/Users/${env.USERNAME}/AppData/Roaming/npm"/>
+    <exec executable="${jsdoc.home}/jsdoc.cmd">
+      <arg value="."/>
+    </exec>
+    <delete dir="${basedir}/../docs" quiet="true"/>
+    <copy todir="${basedir}/../docs">
+      <fileset dir="${basedir}/out"/>
+    </copy>
+    <delete dir="${basedir}/out" quiet="true"/>
   </target>
 
 </project>

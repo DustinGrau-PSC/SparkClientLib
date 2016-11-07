@@ -1,8 +1,25 @@
-// Singleton object for common file IO transformations.
+/**
+ * @file Singleton object for common file IO transformations.
+ * @author Progress Services
+ * @copyright Progress Software 2015-2016
+ * @license Apache-2.0
+ */
 if (window.spark && jQuery && kendo) {
 
+    /**
+     * File IO operations for PMFO.
+     * @namespace spark.io
+     * @memberof spark
+     */
     window.spark.io = {
 
+        /**
+         * Obtain a Font-Awesome icon class based on file extension.
+         * @method addExtensionClass
+         * @memberof spark.io
+         * @param {string} extension File extension startubg with "."
+         * @returns {string} Set of FA icon classes
+         */
         addExtensionClass: function(extension){
             switch(extension){
                 case ".jpg":
@@ -26,8 +43,16 @@ if (window.spark && jQuery && kendo) {
             }
         },
 
+        /**
+         * Create a standard Kendo file upload widget.
+         * @method createUpload
+         * @memberof spark.io
+         * @param {string} selector Target DOM element as [jQuery selector]{@link https://api.jquery.com/category/selectors/}
+         * @param {object} uploadOptions Options for upload behavior
+         * @param {object} overrides Overrides for the upload widget
+         * @returns {object} [kendo.ui.Upload]{@link http://docs.telerik.com/kendo-ui/api/javascript/ui/upload}
+         */
         createUpload: function(selector, uploadOptions, overrides){
-            // Create a standard file upload widget.
             if ($(selector)) {
                 return $(selector).kendoUpload($.extend({
                     async: {
@@ -47,7 +72,7 @@ if (window.spark && jQuery && kendo) {
                     // Basic operations (enable selection button, multi-file upload).
                     enabled: uploadOptions.enableUpload || false,
                     multiple: uploadOptions.multiUpload || false,
-                    
+
                     // Enables the display of the listing of [to-be] uploaded files.
                     showFileList: uploadOptions.showFileList || false,
 
@@ -61,14 +86,14 @@ if (window.spark && jQuery && kendo) {
                     progress: uploadOptions.onProgress || null, // Fires when upload progress data is available [not fired in IE <10].
                     success: uploadOptions.onSuccess || null,   // Fires when an upload/remove operation has been completed successfully.
                     upload: uploadOptions.onUpload || null,     // Fires when files are about to be uploaded; canceling will prevent the upload.
-                
+
                     // Sync and async events.
                     select: uploadOptions.onSelect || null, // Triggered when a file is selected; canceling will prevent selection from occurring.
                     remove: uploadOptions.onRemove || null  // Fires when uploaded file is about to be removed; canceling will prevent the remove.
                 }, overrides)).getKendoUpload();
             }
             return null;
-        },
+        }
 
     };
 

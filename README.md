@@ -31,4 +31,9 @@ Additionally, there is a **/lib/plugins.js** file that provides for extended fea
 Contributions / Changes
 ====================
 
-This library should be ready to use as-is. However, if modifications are needed they can be made within the /src/ directory. To prepare for actual usage, run "ant minify" from within the /src/ directory to create a new minified version of the /lib/spark.min.js file.
+This library should be ready to use as-is. However, if modifications are needed they can be made within the **/src/** directory. To prepare for actual usage, run **"ant minify"** from within the **/src/** directory to create a new minified version of the **/lib/spark.min.js** file.
+
+Documentation
+====================
+
+To utilize JSDoc to create documentation from the resulting output, be sure that you first have **JSDoc3** installed. This can be done easily via Node.js with the command **"npm install jsdoc"**. The proper task for Ant will already be present in the build script found in **/src/**, and available to execute by running **"ant document"** from that directory. To utilize the JSDoc binary properly within Ant, you must adjust the Ant property called **"jsdoc.home"** to point to your global NPM modules directory. This is typically located at **"C:\Users\\[username]\AppData\Roaming\npm"** on Windows7 and later.
