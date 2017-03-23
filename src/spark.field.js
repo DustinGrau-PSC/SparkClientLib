@@ -1,7 +1,7 @@
 /**
  * @file Singleton object for common field operations.
  * @author Progress Services
- * @copyright Progress Software 2015-2016
+ * @copyright Progress Software 2015-2017
  * @license Apache-2.0
  */
 if (window.spark && jQuery && kendo) {
@@ -54,6 +54,27 @@ if (window.spark && jQuery && kendo) {
         ],
 
         /**
+         * Return the currently-selected record for a data-driven field.
+         * @method getSelectedRecord
+         * @memberof spark.field
+         * @param {object} field Widget instance
+         * @returns {object} Selected record
+         */
+        getSelectedRecord: function(field){
+            try {
+                if (field.dataSource && field.select) {
+                    // Proceed if field has dataSource and select method.
+                    var data = field.dataSource.data();
+                    if (field.select() > -1 && data.length > 0) {
+                        // Return selected data, when present.
+                        return data[field.select()];
+                    }
+                }
+            } catch(e) {}
+            return {};
+        },
+
+        /**
          * Create a culture-based date picker that understands common input formats.
          * @method createDatePicker
          * @memberof spark.field
@@ -63,9 +84,9 @@ if (window.spark && jQuery && kendo) {
          */
         createDatePicker: function(selector, fieldOptions){
             if ($(selector).length) {
-            	var patterns = ((kendo.cultures.current || {}).calendar || {}).patterns || {};
-            	var primary = patterns.d || "MM/dd/yyyy";
-            	return $(selector).kendoDatePicker($.extend({
+                var patterns = ((kendo.cultures.current || {}).calendar || {}).patterns || {};
+                var primary = patterns.d || "MM/dd/yyyy";
+                return $(selector).kendoDatePicker($.extend({
                     format: primary,
                     parseFormats: [primary, "MM/dd/yyyy", "MM/dd/yy", "yyyy-MM-dd"]
                 }, fieldOptions)).getKendoDatePicker();
@@ -87,6 +108,23 @@ if (window.spark && jQuery && kendo) {
                     format: "MM/dd/yyyy",
                     parseFormats: ["MM/dd/yyyy", "MM/dd/yy", "yyyy-MM-dd"]
                 }, fieldOptions)).getKendoDatePicker();
+            }
+            return null;
+        },
+
+        /**
+         * Create a masked input field with a specific format.
+         * @method createFormattedField
+         * @memberof spark.field
+         * @param {string} selector Target DOM element as [jQuery selector]{@link https://api.jquery.com/category/selectors/}
+         * @param {object} fieldOptions Properties for widget
+         * @returns {object} [kendo.ui.MaskedTextBox]{@link http://docs.telerik.com/kendo-ui/api/javascript/ui/maskedtextbox}
+         */
+        createFormattedField: function(selector, fieldOptions){
+            if ($(selector).length) {
+                return $(selector).kendoMaskedTextBox($.extend({
+                    mask: fieldOptions.mask || null
+                }, fieldOptions)).getKendoMaskedTextBox();
             }
             return null;
         },
@@ -158,20 +196,20 @@ if (window.spark && jQuery && kendo) {
         createSimpleLookup: function(selector, fieldOptions){
             // Create a simple dropdown for a single lookup value.
             if ($(selector).length) {
-            	if (fieldOptions.multiple === true) {
+                if (fieldOptions.multiple === true) {
                     return $(selector).kendoMultiSelect($.extend({
-                    	autoClose: false,
-                    	dataSource: [],
-                    	suggest: true,
+                        autoClose: false,
+                        dataSource: [],
+                        suggest: true,
                         valuePrimitive: true // Allows initial value to be nullable.
                     }, fieldOptions)).getKendoMultiSelect();
-            	} else {
+                } else {
                     return $(selector).kendoDropDownList($.extend({
                         dataSource: [],
                         suggest: true,
                         valuePrimitive: true // Allows initial value to be nullable.
-                    }, fieldOptions)).getKendoDropDownList();            		
-            	}
+                    }, fieldOptions)).getKendoDropDownList();
+                }
             }
             return null;
         },
@@ -227,68 +265,68 @@ if (window.spark && jQuery && kendo) {
          * @returns {object} [kendo.ui.MultiSelect]{@link http://docs.telerik.com/kendo-ui/api/javascript/ui/multiselect} or [kendo.ui.DropDownList]{@link http://docs.telerik.com/kendo-ui/api/javascript/ui/dropdownlist}
          */
         createInvokeLookup: function(selector, fieldOptions){
-        	if ($(selector).length) {
-        		// First create as a single-item-selection lookup.
-        		var lookup = null;
-        		if (fieldOptions.multiple === true) {
-            		lookup = $(selector).kendoMultiSelect($.extend({
-            			autoClose: false,
-            			dataSource: new kendo.data.DataSource(), // Standard datasource.
-                        filter: "contains",
-                        suggest: true,
-                        valuePrimitive: true // Allows initial value to be nullable.                    
-                    }, fieldOptions)).getKendoMultiSelect();       
-        		} else {
-            		lookup = $(selector).kendoDropDownList($.extend({
+            if ($(selector).length) {
+                // First create as a single-item-selection lookup.
+                var lookup = null;
+                if (fieldOptions.multiple === true) {
+                    lookup = $(selector).kendoMultiSelect($.extend({
+                        autoClose: false,
                         dataSource: new kendo.data.DataSource(), // Standard datasource.
                         filter: "contains",
-                        valuePrimitive: true // Allows initial value to be nullable.                    
-                    }, fieldOptions)).getKendoDropDownList();        			
-        		}
+                        suggest: true,
+                        valuePrimitive: true // Allows initial value to be nullable.
+                    }, fieldOptions)).getKendoMultiSelect();
+                } else {
+                    lookup = $(selector).kendoDropDownList($.extend({
+                        dataSource: new kendo.data.DataSource(), // Standard datasource.
+                        filter: "contains",
+                        valuePrimitive: true // Allows initial value to be nullable.
+                    }, fieldOptions)).getKendoDropDownList();
+                }
 
-            	if (!fieldOptions.invokeResource) {
-            		console.log("Resource name was not specified for invoke lookup:", selector);
-            		return lookup;
-            	}
+                if (!fieldOptions.invokeResource) {
+                    console.log("Resource name was not specified for invoke lookup:", selector);
+                    return lookup;
+                }
 
-        		// Perform initial load of data from invoke method.
-        		if (lookup && fieldOptions.invokeResource) {
-        			lookup._jsdo = spark.createJSDO(fieldOptions.invokeResource);
-	                if (fieldOptions.invokeMethod) {
-	                	// Create a method that can be called at-will to update data.
-	                	lookup.fetchData = function(params){
-	                		lookup._jsdo.invoke(fieldOptions.invokeMethod, (params || {}))
-			                	.done(function(jsdo, status, request){
-			                		var response = request.response || {};
-			                		if (fieldOptions.invokeDataProperty) {
-			                			// Data should be found within a specific response property.
-				                		var data = response[fieldOptions.invokeDataProperty] || [];
-				                		lookup.dataSource.data(data);
-			                		} else {
-			                			// Otherwise use the entire response as-is.
-			                			lookup.dataSource.data(response);
-			                		}
-			                	});
-	                    };
-	                    if (fieldOptions.autoBind == undefined || fieldOptions.autoBind === true) {
-	                    	// Perform initial fetch only if autoBind is not present,
-	                    	// or if option is present and explicitly set to true.
-	                    	lookup.fetchData();
-	                    }
-	                } else {
-	                	lookup.fetchData = function(params){
-	                		console.log("Method is not currently configured for use.");
-	                	};
-	                	console.log("No method name provided for invoke lookup:", selector);
-	                }
-        		}
+                // Perform initial load of data from invoke method.
+                if (lookup && fieldOptions.invokeResource) {
+                    lookup._jsdo = spark.createJSDO(fieldOptions.invokeResource);
+                    if (fieldOptions.invokeMethod) {
+                        // Create a method that can be called at-will to update data.
+                        lookup.fetchData = function(params){
+                            return lookup._jsdo.invoke(fieldOptions.invokeMethod, (params || {}))
+                                .done(function(jsdo, status, request){
+                                    var response = request.response || {};
+                                    if (fieldOptions.invokeDataProperty) {
+                                        // Data should be found within a specific response property.
+                                        var data = response[fieldOptions.invokeDataProperty] || [];
+                                        lookup.dataSource.data(data);
+                                    } else {
+                                        // Otherwise use the entire response as-is.
+                                        lookup.dataSource.data(response);
+                                    }
+                                });
+                        };
+                        if (fieldOptions.autoBind == undefined || fieldOptions.autoBind === true) {
+                            // Perform initial fetch only if autoBind is not present,
+                            // or if option is present and explicitly set to true.
+                            lookup.fetchData();
+                        }
+                    } else {
+                        lookup.fetchData = function(params){
+                            console.log("Method is not currently configured for use.");
+                        };
+                        console.log("No method name provided for invoke lookup:", selector);
+                    }
+                }
                 return lookup;
             }
             return null;
         },
 
         /**
-         * Create a culture-based date picker that understands common input formats.
+         * Create a resource-driven dropdown that will simply load a set of remote data values.
          * @method createResourceLookup
          * @memberof spark.field
          * @param {string} selector Target DOM element as [jQuery selector]{@link https://api.jquery.com/category/selectors/}
@@ -296,36 +334,36 @@ if (window.spark && jQuery && kendo) {
          * @returns {object} [kendo.ui.DropDownList]{@link http://docs.telerik.com/kendo-ui/api/javascript/ui/dropdownlist}
          */
         createResourceLookup: function(selector, fieldOptions){
-        	if (!fieldOptions.resourceName) {
-        		console.log("Resource name was not specified for resource lookup:", selector);
-        		return null;
-        	}
+            if (!fieldOptions.resourceName) {
+                console.log("Resource name was not specified for resource lookup:", selector);
+                return null;
+            }
 
-        	if ($(selector).length) {
-        		var dsOptions = {
-    				transport: {
+            if ($(selector).length) {
+                var dsOptions = {
+                    transport: {
                         jsdo: spark.createJSDO(fieldOptions.resourceName)
                     },
                     type: "jsdo"
-        		};
-        		delete fieldOptions.resourceName;
+                };
+                delete fieldOptions.resourceName;
 
                 var jsdoProps = dsOptions.transport.jsdo.getMethodProperties("read");
                 if (jsdoProps && jsdoProps.capabilities) {
-                	dsOptions.serverFiltering = (jsdoProps.capabilities || "").indexOf("filter") > -1;
-	                dsOptions.serverPaging = (jsdoProps.capabilities || "").indexOf("top") > -1;
-	                dsOptions.serverSorting = (jsdoProps.capabilities || "").indexOf("sort") > -1;
+                    dsOptions.serverFiltering = (jsdoProps.capabilities || "").indexOf("filter") > -1;
+                    dsOptions.serverPaging = (jsdoProps.capabilities || "").indexOf("top") > -1;
+                    dsOptions.serverSorting = (jsdoProps.capabilities || "").indexOf("sort") > -1;
                 }
-        		if (fieldOptions.resourceTable) {
-        			dsOptions.transport.tableRef = fieldOptions.resourceTable;
-        			delete fieldOptions.resourceTable;
-        		}
-        		if (fieldOptions.dataValueField) {
-        			dsOptions.sort = {field: fieldOptions.dataValueField, dir: "asc"};
-        		}
+                if (fieldOptions.resourceTable) {
+                    dsOptions.transport.tableRef = fieldOptions.resourceTable;
+                    delete fieldOptions.resourceTable;
+                }
+                if (fieldOptions.dataValueField) {
+                    dsOptions.sort = {field: fieldOptions.dataValueField, dir: "asc"};
+                }
 
-        		return $(selector).kendoDropDownList($.extend({
-        			dataSource: new kendo.data.DataSource(dsOptions),
+                return $(selector).kendoDropDownList($.extend({
+                    dataSource: new kendo.data.DataSource(dsOptions),
                     filter: "contains",
                     suggest: true,
                     valuePrimitive: true // Allows initial value to be nullable.
@@ -335,7 +373,7 @@ if (window.spark && jQuery && kendo) {
         },
 
         /**
-         * Create a culture-based date picker that understands common input formats.
+         * Create a resource-driven dropdown that will search remotely for matching values.
          * @method createResourceAutoComplete
          * @memberof spark.field
          * @param {string} selector Target DOM element as [jQuery selector]{@link https://api.jquery.com/category/selectors/}
@@ -343,62 +381,80 @@ if (window.spark && jQuery && kendo) {
          * @returns {object} [kendo.ui.AutoComplete]{@link http://docs.telerik.com/kendo-ui/api/javascript/ui/autocomplete}
          */
         createResourceAutoComplete: function(selector, fieldOptions){
-        	if (!fieldOptions.resourceName) {
-        		console.log("Resource name was not specified for resource auto-complete:", selector);
-        		return null;
-        	}
+            if ($(selector).length) {
+                if (!fieldOptions.resourceName) {
+                    console.log("Resource name was not specified for resource auto-complete:", selector);
+                    return null;
+                }
 
-        	if ($(selector).length) {
-        		var dsOptions = {
-    				transport: {
+                var dsOptions = {
+                    transport: {
                         jsdo: spark.createJSDO(fieldOptions.resourceName)
                     },
-                    type: "jsdo"
-        		};
-        		delete fieldOptions.resourceName;
+                    type: "jsdo",
+                    requestStart: function(e){
+                        var filters = (this.filter() || {}).filters || [];
+                        if (filters.length === 0 || (filters[0] || {}).value == "") {
+                            // Do not perform a search without a filter!
+                            e.preventDefault();
+                            return false;
+                        } else if (filters.length > 1) {
+                            // If more than 1 filter, send the first entry.
+                            e.sender.filter(filters[0]);
+                            e.preventDefault();
+                            return false;
+                        }
+                    }
+                };
+                delete fieldOptions.resourceName;
 
                 var jsdoProps = dsOptions.transport.jsdo.getMethodProperties("read");
                 if (jsdoProps && jsdoProps.capabilities) {
-                	dsOptions.serverFiltering = (jsdoProps.capabilities || "").indexOf("filter") > -1;
-	                dsOptions.serverPaging = (jsdoProps.capabilities || "").indexOf("top") > -1;
-	                dsOptions.serverSorting = (jsdoProps.capabilities || "").indexOf("sort") > -1;
+                    dsOptions.serverFiltering = (jsdoProps.capabilities || "").indexOf("filter") > -1;
+                    dsOptions.serverPaging = (jsdoProps.capabilities || "").indexOf("top") > -1;
+                    dsOptions.serverSorting = (jsdoProps.capabilities || "").indexOf("sort") > -1;
                 }
-        		if (fieldOptions.resourceTable) {
-        			dsOptions.transport.tableRef = fieldOptions.resourceTable;
-        			delete fieldOptions.resourceTable;
-        		}
-        		if (fieldOptions.dataValueField) {
-        			dsOptions.sort = {field: fieldOptions.dataValueField, dir: "asc"};
-        		}
-        		if (fieldOptions.dataSourceOptions) {
-        			dsOptions = $.extend(dsOptions, fieldOptions.dataSourceOptions);
-        			delete fieldOptions.dataSourceOptions;
-        		}
+                if (fieldOptions.pageSize) {
+                    dsOptions.pageSize = fieldOptions.pageSize;
+                    delete fieldOptions.pageSize;
+                }
+                if (fieldOptions.resourceTable) {
+                    dsOptions.transport.tableRef = fieldOptions.resourceTable;
+                    delete fieldOptions.resourceTable;
+                }
+                if (fieldOptions.dataValueField) {
+                    dsOptions.sort = {field: fieldOptions.dataValueField, dir: "asc"};
+                }
+                if (fieldOptions.dataSourceOptions) {
+                    dsOptions = $.extend(dsOptions, fieldOptions.dataSourceOptions);
+                    delete fieldOptions.dataSourceOptions;
+                }
 
-        		return $(selector).kendoAutoComplete($.extend({
-        			dataSource: new kendo.data.DataSource(dsOptions),
+                return $(selector).kendoAutoComplete($.extend({
+                    dataSource: new kendo.data.DataSource(dsOptions),
+                    delay: 400,
                     filter: "startsWith",
                     minLength: 2,
                     virtual: true,
                     change: function(e) {
-                    	/**
-                    	 * Reset the filter after each change of data.
-                    	 * Necessary due to filters apparently stacking
-                    	 * up as you change the search value.
-                    	 */
-                    	e.sender.dataSource.filter({});
+                        /**
+                         * Reset the filter after each change of data.
+                         * Necessary due to filters apparently stacking
+                         * up as you change the search value.
+                         */
+                        //e.sender.dataSource.filter({});
                     },
                     filtering: function(e){
-                    	/**
-                    	 * Adjust the filter before sending, allowing for the
-                    	 * ability to search on an alternate field--one that
-                    	 * is not the same field to be used as the dataTextField. 
-                    	 */
-                    	var filter = e.filter;
-                    	if (fieldOptions.filterField) {
-                    		filter.field = fieldOptions.filterField;
-                    	}
-        				return filter;
+                        /**
+                         * Adjust the filter before sending, allowing for the
+                         * ability to search on an alternate field--one that
+                         * is not the same field to be used as the dataTextField.
+                         */
+                        var filter = e.filter;
+                        if (fieldOptions.filterField) {
+                            filter.field = fieldOptions.filterField;
+                        }
+                        return filter;
                     }
                 }, fieldOptions)).getKendoAutoComplete();
             }
@@ -414,47 +470,47 @@ if (window.spark && jQuery && kendo) {
          * @returns {boolean} Result of keypress event
          */
         addKeypressEvent: function(selector, fieldOptions){
-        	var _timeout = null;
-        	if ($(selector).length) {
-        		if (!fieldOptions.onInvalidKey) {
-        			fieldOptions.onInvalidKey = function(ev){
-        				if (ev) {
-        					ev.preventDefault();
-        				}
-        				return false; // Ignore any uncaught keys.
-        			}
-        		}
-        		$(selector).keypress(function(ev){
-                	if (ev.which !== 0) {
-                		var value = String.fromCharCode(ev.which);
-                		if (ev.which === kendo.keys.BACKSPACE) {
-        					// Allow Backspace as a valid key.
-        					clearTimeout(_timeout);
-                			_timeout = setTimeout(fieldOptions.onValidKey, fieldOptions.delay || 400);
-        				} else if (ev.which === kendo.keys.ENTER) {
-        					// Perform action on Enter keypress.
-                			clearTimeout(_timeout);
-                			_timeout = setTimeout(fieldOptions.onEnter, fieldOptions.delay || 400);
-        				} else if (value.match(fieldOptions.filter || /.*/)) {
-        					// Filter only certain keys, disallowing all other keys.
-        					// Default pattern should match any key not already caught.
-                			clearTimeout(_timeout);
-                			_timeout = setTimeout(fieldOptions.onValidKey, fieldOptions.delay || 400);
-                		} else {
-                			return fieldOptions.onInvalidKey.apply(this, [ev]);
-                		}
+            var _timeout = null;
+            if ($(selector).length) {
+                if (!fieldOptions.onInvalidKey) {
+                    fieldOptions.onInvalidKey = function(ev){
+                        if (ev) {
+                            ev.preventDefault();
+                        }
+                        return false; // Ignore any uncaught keys.
+                    }
+                }
+                $(selector).keypress(function(ev){
+                    if (ev.which !== 0) {
+                        var value = String.fromCharCode(ev.which);
+                        if (ev.which === kendo.keys.BACKSPACE) {
+                            // Allow Backspace as a valid key.
+                            clearTimeout(_timeout);
+                            _timeout = setTimeout(fieldOptions.onValidKey, fieldOptions.delay || 400);
+                        } else if (ev.which === kendo.keys.ENTER) {
+                            // Perform action on Enter keypress.
+                            clearTimeout(_timeout);
+                            _timeout = setTimeout(fieldOptions.onEnter, fieldOptions.delay || 400);
+                        } else if (value.match(fieldOptions.filter || /.*/)) {
+                            // Filter only certain keys, disallowing all other keys.
+                            // Default pattern should match any key not already caught.
+                            clearTimeout(_timeout);
+                            _timeout = setTimeout(fieldOptions.onValidKey, fieldOptions.delay || 400);
+                        } else {
+                            return fieldOptions.onInvalidKey.apply(this, [ev]);
+                        }
                     }
                 });
-        		$(selector).keyup(function(ev){
-        			if (ev.which === kendo.keys.DELETE) {
-        				// Can only capture the Delete key with "keyup" event.
-        				clearTimeout(_timeout);
-            			_timeout = setTimeout(fieldOptions.onValidKey, fieldOptions.delay || 400);
-        			}
-        		});
-        		return true;
-        	}
-        	return false;
+                $(selector).keyup(function(ev){
+                    if (ev.which === kendo.keys.DELETE) {
+                        // Can only capture the Delete key with "keyup" event.
+                        clearTimeout(_timeout);
+                        _timeout = setTimeout(fieldOptions.onValidKey, fieldOptions.delay || 400);
+                    }
+                });
+                return true;
+            }
+            return false;
         }
 
     };

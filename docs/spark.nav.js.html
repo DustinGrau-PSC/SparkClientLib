@@ -29,7 +29,7 @@
             <pre class="prettyprint source linenums"><code>/**
  * @file Singleton object for application navigation.
  * @author Progress Services
- * @copyright Progress Software 2015-2016
+ * @copyright Progress Software 2015-2017
  * @license Apache-2.0
  */
 if (window.spark &amp;&amp; kendo) {
@@ -66,6 +66,24 @@ if (window.spark &amp;&amp; kendo) {
                 var router = new kendo.Router({
                     change: options.onChange || function(ev){}
                 });
+
+                // Add custom properties and methods.
+                router.loggedIn = false; // Denotes AuthN state.
+                router.menuData = []; // Placeholder for menu data.
+                router.isSecurePage = function(url){
+                    var isSecure = false;
+                    $.each(this.menuData || [], function(i, topItem){
+                        if (topItem.items) {
+                            $.each(topItem.items, function(i, menuItem){
+                                if (menuItem.url == url) {
+                                    // When found, mark as secure if property is explicitly set.
+                                    isSecure = (menuItem.secure === true);
+                                }
+                            });
+                        }
+                    });
+                    return isSecure;
+                };
 
                 // Define a simple routing patterns for this application.
                 router.route("/", function(){
@@ -164,58 +182,58 @@ if (window.spark &amp;&amp; kendo) {
                     // Destroy any previous contents.
                     $(selector).empty();
 
-        			// Cycle through menu data, building structure.
-        			var navItem = $('&lt;nav class="nav-primary hidden-xs" data-ride="collapse" role="navigation">&lt;/nav>');
-        			var navList = $('&lt;ul class="nav" data-ride="collapse">&lt;/ul>');
+                    // Cycle through menu data, building structure.
+                    var navItem = $('&lt;nav class="nav-primary hidden-xs" data-ride="collapse" role="navigation">&lt;/nav>');
+                    var navList = $('&lt;ul class="nav" data-ride="collapse">&lt;/ul>');
                     if (typeof(menuData) === "object") {
-        				$.each(menuData, function(i, parent){
-        	            	var currentPath = ""; // Identifies the current link in use.
-        	            	if (app.currentPage.path &amp;&amp; app.currentPage.path != "") {
-        	                	currentPath = "#" + app.currentPage.path.replace("app/views", "");
-        	                }
+                        $.each(menuData, function(i, parent){
+                            var currentPath = ""; // Identifies the current link in use.
+                            if (app.currentPage.path &amp;&amp; app.currentPage.path != "") {
+                                currentPath = "#" + app.currentPage.path.replace("app/views", "");
+                            }
 
-        	            	// Construct the parent menu item.
-        					var navParentLink = $('&lt;a href="javascript:void(0)" class="auto nav-link">&lt;/a>');
-        					if (parent.icon) {
-        						navParentLink.append($('&lt;i class="fa ' + parent.icon + ' m-r-xs">&lt;/i>'));
-        					}
+                            // Construct the parent menu item.
+                            var navParentLink = $('&lt;a href="javascript:void(0)" class="auto nav-link">&lt;/a>');
+                            if (parent.icon) {
+                                navParentLink.append($('&lt;i class="fa ' + parent.icon + ' m-r-xs">&lt;/i>'));
+                            }
 
-        					// Add parent link to new parent menu item.
-        					var navParent = $('&lt;li class="nav-item">&lt;/li>');
-        					navParentLink.append($('&lt;span>' + parent.text + '&lt;/span>'));
-        					navParent.append(navParentLink);
+                            // Add parent link to new parent menu item.
+                            var navParent = $('&lt;li class="nav-item">&lt;/li>');
+                            navParentLink.append($('&lt;span>' + parent.text + '&lt;/span>'));
+                            navParent.append(navParentLink);
 
-        					// Build all child menu items.
-        					var navChildList = $('&lt;ul class="nav dker">&lt;/ul>');
-        					if (typeof(parent.items) === "object") {
-        						$.each(parent.items, function(j, child){
-        							// Create the menu link for this child.
-        							var navChildLink = $('&lt;a class="nav-link">&lt;/a>');
-        							navChildLink.attr("href", child.url);
-        							if (child.url.indexOf("http") === 0) {
-        								navChildLink.attr("target", "_blank");
-        							}
+                            // Build all child menu items.
+                            var navChildList = $('&lt;ul class="nav dker">&lt;/ul>');
+                            if (typeof(parent.items) === "object") {
+                                $.each(parent.items, function(j, child){
+                                    // Create the menu link for this child.
+                                    var navChildLink = $('&lt;a class="nav-link">&lt;/a>');
+                                    navChildLink.attr("href", child.url);
+                                    if (child.url.indexOf("http") === 0) {
+                                        navChildLink.attr("target", "_blank");
+                                    }
 
-        							// Create new child menu item and append link.
-        							var navChild = $('&lt;li class="nav-item">&lt;/li>');
-        							navChild.append(navChildLink.text(child.text));
-        							navChildList.append(navChild);
+                                    // Create new child menu item and append link.
+                                    var navChild = $('&lt;li class="nav-item">&lt;/li>');
+                                    navChild.append(navChildLink.text(child.text));
+                                    navChildList.append(navChild);
 
-        							// Mark parent and child as active when needed.
-        							if (currentPath != "" &amp;&amp; currentPath == child.url) {
-        								navParent.addClass("active");
-        								navChildLink.addClass("active");
-        							}
-        						});
-        					}
+                                    // Mark parent and child as active when needed.
+                                    if (currentPath != "" &amp;&amp; currentPath == child.url) {
+                                        navParent.addClass("active");
+                                        navChildLink.addClass("active");
+                                    }
+                                });
+                            }
 
-        					// Add children to parent menu, add to navigation.
-        					navParent.append(navChildList);
-        					navList.append(navParent);
-        				});
+                            // Add children to parent menu, add to navigation.
+                            navParent.append(navChildList);
+                            navList.append(navParent);
+                        });
                     }
                     navItem.append(navList);
-        			$(selector).append(navItem);
+                    $(selector).append(navItem);
                 } else {
                     console.info("No menu element has been defined.");
                 }
@@ -234,13 +252,13 @@ if (window.spark &amp;&amp; kendo) {
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Namespaces</h3><ul><li><a href="spark.html">spark</a></li><li><a href="spark.field.html">field</a></li><li><a href="spark.form.html">form</a></li><li><a href="spark.grid.html">grid</a></li><li><a href="spark.io.html">io</a></li><li><a href="spark.loader.html">loader</a></li><li><a href="spark.nav.html">nav</a></li><li><a href="spark.notify.html">notify</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Namespaces</h3><ul><li><a href="spark.html">spark</a></li><li><a href="spark.field.html">field</a></li><li><a href="spark.form.html">form</a></li><li><a href="spark.grid.html">grid</a></li><li><a href="spark.io.html">io</a></li><li><a href="spark.loader.html">loader</a></li><li><a href="spark.nav.html">nav</a></li><li><a href="spark.notify.html">notify</a></li><li><a href="spark.strings.html">strings</a></li></ul>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.4.2</a> on Mon Nov 07 2016 16:33:55 GMT-0500 (Eastern Standard Time)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.4.2</a> on Fri Mar 03 2017 07:14:45 GMT-0500 (Eastern Standard Time)
 </footer>
 
 <script> prettyPrint(); </script>

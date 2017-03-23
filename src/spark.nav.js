@@ -1,7 +1,7 @@
 /**
  * @file Singleton object for application navigation.
  * @author Progress Services
- * @copyright Progress Software 2015-2016
+ * @copyright Progress Software 2015-2017
  * @license Apache-2.0
  */
 if (window.spark && kendo) {
@@ -38,6 +38,24 @@ if (window.spark && kendo) {
                 var router = new kendo.Router({
                     change: options.onChange || function(ev){}
                 });
+
+                // Add custom properties and methods.
+                router.loggedIn = false; // Denotes AuthN state.
+                router.menuData = []; // Placeholder for menu data.
+                router.isSecurePage = function(url){
+                    var isSecure = false;
+                    $.each(this.menuData || [], function(i, topItem){
+                        if (topItem.items) {
+                            $.each(topItem.items, function(i, menuItem){
+                                if (menuItem.url == url) {
+                                    // When found, mark as secure if property is explicitly set.
+                                    isSecure = (menuItem.secure === true);
+                                }
+                            });
+                        }
+                    });
+                    return isSecure;
+                };
 
                 // Define a simple routing patterns for this application.
                 router.route("/", function(){
@@ -136,58 +154,58 @@ if (window.spark && kendo) {
                     // Destroy any previous contents.
                     $(selector).empty();
 
-        			// Cycle through menu data, building structure.
-        			var navItem = $('<nav class="nav-primary hidden-xs" data-ride="collapse" role="navigation"></nav>');
-        			var navList = $('<ul class="nav" data-ride="collapse"></ul>');
+                    // Cycle through menu data, building structure.
+                    var navItem = $('<nav class="nav-primary hidden-xs" data-ride="collapse" role="navigation"></nav>');
+                    var navList = $('<ul class="nav" data-ride="collapse"></ul>');
                     if (typeof(menuData) === "object") {
-        				$.each(menuData, function(i, parent){
-        	            	var currentPath = ""; // Identifies the current link in use.
-        	            	if (app.currentPage.path && app.currentPage.path != "") {
-        	                	currentPath = "#" + app.currentPage.path.replace("app/views", "");
-        	                }
+                        $.each(menuData, function(i, parent){
+                            var currentPath = ""; // Identifies the current link in use.
+                            if (app.currentPage.path && app.currentPage.path != "") {
+                                currentPath = "#" + app.currentPage.path.replace("app/views", "");
+                            }
 
-        	            	// Construct the parent menu item.
-        					var navParentLink = $('<a href="javascript:void(0)" class="auto nav-link"></a>');
-        					if (parent.icon) {
-        						navParentLink.append($('<i class="fa ' + parent.icon + ' m-r-xs"></i>'));
-        					}
+                            // Construct the parent menu item.
+                            var navParentLink = $('<a href="javascript:void(0)" class="auto nav-link"></a>');
+                            if (parent.icon) {
+                                navParentLink.append($('<i class="fa ' + parent.icon + ' m-r-xs"></i>'));
+                            }
 
-        					// Add parent link to new parent menu item.
-        					var navParent = $('<li class="nav-item"></li>');
-        					navParentLink.append($('<span>' + parent.text + '</span>'));
-        					navParent.append(navParentLink);
+                            // Add parent link to new parent menu item.
+                            var navParent = $('<li class="nav-item"></li>');
+                            navParentLink.append($('<span>' + parent.text + '</span>'));
+                            navParent.append(navParentLink);
 
-        					// Build all child menu items.
-        					var navChildList = $('<ul class="nav dker"></ul>');
-        					if (typeof(parent.items) === "object") {
-        						$.each(parent.items, function(j, child){
-        							// Create the menu link for this child.
-        							var navChildLink = $('<a class="nav-link"></a>');
-        							navChildLink.attr("href", child.url);
-        							if (child.url.indexOf("http") === 0) {
-        								navChildLink.attr("target", "_blank");
-        							}
+                            // Build all child menu items.
+                            var navChildList = $('<ul class="nav dker"></ul>');
+                            if (typeof(parent.items) === "object") {
+                                $.each(parent.items, function(j, child){
+                                    // Create the menu link for this child.
+                                    var navChildLink = $('<a class="nav-link"></a>');
+                                    navChildLink.attr("href", child.url);
+                                    if (child.url.indexOf("http") === 0) {
+                                        navChildLink.attr("target", "_blank");
+                                    }
 
-        							// Create new child menu item and append link.
-        							var navChild = $('<li class="nav-item"></li>');
-        							navChild.append(navChildLink.text(child.text));
-        							navChildList.append(navChild);
+                                    // Create new child menu item and append link.
+                                    var navChild = $('<li class="nav-item"></li>');
+                                    navChild.append(navChildLink.text(child.text));
+                                    navChildList.append(navChild);
 
-        							// Mark parent and child as active when needed.
-        							if (currentPath != "" && currentPath == child.url) {
-        								navParent.addClass("active");
-        								navChildLink.addClass("active");
-        							}
-        						});
-        					}
+                                    // Mark parent and child as active when needed.
+                                    if (currentPath != "" && currentPath == child.url) {
+                                        navParent.addClass("active");
+                                        navChildLink.addClass("active");
+                                    }
+                                });
+                            }
 
-        					// Add children to parent menu, add to navigation.
-        					navParent.append(navChildList);
-        					navList.append(navParent);
-        				});
+                            // Add children to parent menu, add to navigation.
+                            navParent.append(navChildList);
+                            navList.append(navParent);
+                        });
                     }
                     navItem.append(navList);
-        			$(selector).append(navItem);
+                    $(selector).append(navItem);
                 } else {
                     console.info("No menu element has been defined.");
                 }

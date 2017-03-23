@@ -1,7 +1,7 @@
 /**
  * @file Singleton object for common file IO transformations.
  * @author Progress Services
- * @copyright Progress Software 2015-2016
+ * @copyright Progress Software 2015-2017
  * @license Apache-2.0
  */
 if (window.spark && jQuery && kendo) {

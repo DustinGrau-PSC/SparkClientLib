@@ -29,7 +29,7 @@
             <pre class="prettyprint source linenums"><code>/**
  * @file Singleton object for common grid operations.
  * @author Progress Services
- * @copyright Progress Software 2015-2016
+ * @copyright Progress Software 2015-2017
  * @license Apache-2.0
  */
 if (window.spark &amp;&amp; kendo) {
@@ -65,11 +65,20 @@ if (window.spark &amp;&amp; kendo) {
          * @returns {object} Object with columns, sort, filter, and group properties
          */
         getViewState: function(grid) {
+            if (grid) {
+                return {
+                    columns: grid.columns || [],
+                    filter: grid.dataSource.filter(),
+                    group: grid.dataSource.group(),
+                    sort: grid.dataSource.sort()
+                };
+            }
+
             return {
-                columns: grid.columns,
-                sort: grid.dataSource.sort(),
-                filter: grid.dataSource.filter(),
-                group: grid.dataSource.group()
+                columns: null,
+                filter: null,
+                group: null,
+                sort: null
             };
         },
 
@@ -80,9 +89,26 @@ if (window.spark &amp;&amp; kendo) {
          * @returns {object} Simple text container with column value
          */
         createReadOnlyEditor: function(){
-        	return function(container, options){
-        		container.text(options.model[options.field]);
-        	}
+            return function(container, options){
+                container.text(options.model[options.field]);
+            }
+        },
+
+        /**
+         * Lazy-initializer for creating an masked text editor field.
+         * @method createFormattedFieldEditor
+         * @memberof spark.grid
+         * @param {object} fieldOptions Properties for widget
+         * @returns {object} Instance of a {@link spark.field.createFormattedField}
+         */
+        createFormattedFieldEditor: function(fieldOptions){
+            return function(container, options){
+                options.sparkEditor = spark.field.createFormattedField($('&lt;input data-bind="value:' + options.field + '"/>').appendTo(container), fieldOptions);
+                setTimeout(function(){
+                    var data = options.model[options.field] || options.model.defaults[options.field];
+                    options.sparkEditor.value(data);
+                }, 20);
+            }
         },
 
         /**
@@ -93,21 +119,21 @@ if (window.spark &amp;&amp; kendo) {
          * @returns {object} Instance of a {@link spark.field.createMultiLookup}
          */
         createMultiLookup: function(fieldOptions){
-        	return function(container, options){
-				options.sparkEditor = spark.field.createMultiLookup($('&lt;input data-bind="value:' + options.field + '"/>').appendTo(container), fieldOptions);
-				setTimeout(function(){
-					/**
-					 * Convert comma-delimited data into an array, and assign as
-					 * values of the new multi-select field. For some reason we
-					 * need to do this with a small delay after widget creation.
-					 */
-					var data = options.model[options.field] || options.model.defaults[options.field];
-					if (typeof(data) === "string" &amp;&amp; data.indexOf(",") > -1) {
-						data = data.split(",");
-					}
-					options.sparkEditor.value(data);
-				}, 20);
-        	}
+            return function(container, options){
+                options.sparkEditor = spark.field.createMultiLookup($('&lt;input data-bind="value:' + options.field + '"/>').appendTo(container), fieldOptions);
+                setTimeout(function(){
+                    /**
+                     * Convert comma-delimited data into an array, and assign as
+                     * values of the new multi-select field. For some reason we
+                     * need to do this with a small delay after widget creation.
+                     */
+                    var data = options.model[options.field] || options.model.defaults[options.field];
+                    if (typeof(data) === "string" &amp;&amp; data.indexOf(",") > -1) {
+                        data = data.split(",");
+                    }
+                    options.sparkEditor.value(data);
+                }, 20);
+            }
         },
 
         /**
@@ -118,13 +144,13 @@ if (window.spark &amp;&amp; kendo) {
          * @returns {object} Instance of a {@link spark.field.createSimpleLookup}
          */
         createSimpleLookupEditor: function(fieldOptions){
-        	return function(container, options){
-        		options.sparkEditor = spark.field.createSimpleLookup($('&lt;input data-bind="value:' + options.field + '"/>').appendTo(container), fieldOptions);
-        		setTimeout(function(){
-        			var data = options.model[options.field] || options.model.defaults[options.field];
-        			options.sparkEditor.value(data);
-				}, 20);
-        	}
+            return function(container, options){
+                options.sparkEditor = spark.field.createSimpleLookup($('&lt;input data-bind="value:' + options.field + '"/>').appendTo(container), fieldOptions);
+                setTimeout(function(){
+                    var data = options.model[options.field] || options.model.defaults[options.field];
+                    options.sparkEditor.value(data);
+                }, 20);
+            }
         },
 
         /**
@@ -135,13 +161,13 @@ if (window.spark &amp;&amp; kendo) {
          * @returns {object} Instance of a {@link spark.field.createSingleLookup}
          */
         createSingleLookupEditor: function(fieldOptions){
-        	return function(container, options){
+            return function(container, options){
                 options.sparkEditor = spark.field.createSingleLookup($('&lt;input data-bind="value:' + options.field + '"/>').appendTo(container), fieldOptions);
-        		setTimeout(function(){
-        			var data = options.model[options.field] || options.model.defaults[options.field];
-					options.sparkEditor.value(data);
-				}, 20);
-        	}
+                setTimeout(function(){
+                    var data = options.model[options.field] || options.model.defaults[options.field];
+                    options.sparkEditor.value(data);
+                }, 20);
+            }
         },
 
         /**
@@ -152,9 +178,9 @@ if (window.spark &amp;&amp; kendo) {
          * @returns {object} Instance of a {@link spark.field.createInvokeLookup}
          */
         createInvokeLookupEditor: function(fieldOptions){
-        	return function(container, options){
+            return function(container, options){
                 options.sparkEditor = spark.field.createInvokeLookup($('&lt;input data-bind="value:' + options.field + '"/>').appendTo(container), fieldOptions);
-        	}
+            }
         }
 
     };
@@ -170,13 +196,13 @@ if (window.spark &amp;&amp; kendo) {
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Namespaces</h3><ul><li><a href="spark.html">spark</a></li><li><a href="spark.field.html">field</a></li><li><a href="spark.form.html">form</a></li><li><a href="spark.grid.html">grid</a></li><li><a href="spark.io.html">io</a></li><li><a href="spark.loader.html">loader</a></li><li><a href="spark.nav.html">nav</a></li><li><a href="spark.notify.html">notify</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Namespaces</h3><ul><li><a href="spark.html">spark</a></li><li><a href="spark.field.html">field</a></li><li><a href="spark.form.html">form</a></li><li><a href="spark.grid.html">grid</a></li><li><a href="spark.io.html">io</a></li><li><a href="spark.loader.html">loader</a></li><li><a href="spark.nav.html">nav</a></li><li><a href="spark.notify.html">notify</a></li><li><a href="spark.strings.html">strings</a></li></ul>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.4.2</a> on Mon Nov 07 2016 16:33:55 GMT-0500 (Eastern Standard Time)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.4.2</a> on Fri Mar 03 2017 07:14:45 GMT-0500 (Eastern Standard Time)
 </footer>
 
 <script> prettyPrint(); </script>

@@ -1,7 +1,7 @@
 /**
  * @file Singleton object for displaying on-screen messages.
  * @author Progress Services
- * @copyright Progress Software 2015-2016
+ * @copyright Progress Software 2015-2017
  * @license Apache-2.0
  */
 if (window.spark && jQuery && kendo) {
@@ -33,23 +33,23 @@ if (window.spark && jQuery && kendo) {
 
                     // Add a method to display a message and scroll into view.
                     notificationObj.showNotification = function(message, type){
-                    	var self = this;
-                    	if (self) {
+                        var self = this;
+                        if (self) {
                             // Type is "info" (default), "success", "warning", or "error".
-                    		if (typeof(message) === "string") {
-                    			// Single message as string.
-                    			self.show(message || "", type || "info");
-                    		} else if (Array.isArray(message)) {
-                    			$.each(message, function(i, msg){
-                    				// Message is an array of strings.
-                    				self.show(msg || "", type || "info");
-                    			});
-                    		}
+                            if (typeof(message) === "string") {
+                                // Single message as string.
+                                self.show(message || "", type || "info");
+                            } else if (Array.isArray(message)) {
+                                $.each(message, function(i, msg){
+                                    // Message is an array of strings.
+                                    self.show(msg || "", type || "info");
+                                });
+                            }
                             if (this.options.appendTo) {
-	                            var container = $(self.options.appendTo);
-	                            if (container.length) {
-	                                container.scrollTop(container[0].scrollHeight);
-	                            }
+                                var container = $(self.options.appendTo);
+                                if (container.length) {
+                                    container.scrollTop(container[0].scrollHeight);
+                                }
                             }
                         }
                     };

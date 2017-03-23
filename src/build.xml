@@ -1,49 +1,64 @@
 <project name="BuildSpark" basedir="." default="usage">
 
-  <target name="usage">
-    <echo message="Usage Instructions:"/>
-    <echo message="ant minify - Concatinate and minify components"/>
-    <echo message="ant concat - Concatinate without minification"/>
-    <echo message="ant document - Build documentation from JS code"/>
-  </target>
+    <target name="usage">
+        <echo message="Usage Instructions:"/>
+        <echo message="ant minify - Concatinate and minify components"/>
+        <echo message="ant concat - Concatinate without minification"/>
+        <echo message="ant document - Build documentation from JS code"/>
+    </target>
 
-  <target name="minify">
-    <!-- Minify JavaScript files in a particular order. -->
-    <taskdef name="jsmin"
-      classname="net.matthaynes.jsmin.JSMin_Task"
-      classpath="${basedir}/jsmin.0.2.4.jar"/>
+	<target name="init">
+        <property name="output.combined" value="${basedir}/../lib/spark.js"/>
+        <property name="output.minified" value="${basedir}/../lib/spark.min.js"/>
 
-    <antcall target="concat"/>
-    <delete file="${basedir}/../lib/spark.min.js" quiet="true"/>
-    <jsmin srcfile="${basedir}/../lib/spark.js" suffix="true" />
-  </target>
+        <tstamp>
+            <format property="build.date" pattern="yyyy.MM.dd.hhmmss"/>
+        </tstamp>
+	</target>
+	
+    <target name="minify" depends="init">
+        <!-- Minify JavaScript files after being combined. -->
+        <taskdef name="jsmin"
+                 classname="net.matthaynes.jsmin.JSMin_Task"
+                 classpath="${basedir}/jsmin.0.2.4.jar"/>
 
-  <target name="concat">
-    <!-- Concatinate JavaScript files in a particular order. -->
-    <delete file="${basedir}/../lib/spark.js" quiet="true"/>
-    <delete file="${basedir}/../lib/spark.min.js" quiet="true"/>
+        <antcall target="concat"/>
+        <delete file="${output.minified}" quiet="true"/>
+        <jsmin srcfile="${output.combined}" suffix="true" />
+    </target>
 
-    <concat destfile="${basedir}/../lib/spark.js">
-      <filelist dir="${basedir}/"
-         files="spark.js,spark.util.js,spark.loader.js,spark.field.js,spark.form.js,spark.grid.js,spark.io.js,spark.nav.js,spark.notify.js"/>
-    </concat>
+    <target name="concat" depends="init">
+        <!-- Concatinate JavaScript files in a particular order. -->
+        <delete file="${output.combined}" quiet="true"/>
+        <delete file="${output.minified}" quiet="true"/>
 
-    <copy file="${basedir}/../lib/spark.js"
-          toFile="${basedir}/../lib/spark.min.js"/>
-  </target>
+        <echo message="build.date: ${build.date}"/>
+        <copy file="${basedir}/spark.js" tofile="${output.combined}">
+            <filterset>
+                <filter token="TIMESTAMP" value="${build.date}"/>
+            </filterset>
+        </copy>
 
-  <target name="document">
-    <!-- Document source JavaScript files using JSDoc3. -->
-    <property environment="env"/>
-    <property name="jsdoc.home" value="C:/Users/${env.USERNAME}/AppData/Roaming/npm"/>
-    <exec executable="${jsdoc.home}/jsdoc.cmd">
-      <arg value="."/>
-    </exec>
-    <delete dir="${basedir}/../docs" quiet="true"/>
-    <copy todir="${basedir}/../docs">
-      <fileset dir="${basedir}/out"/>
-    </copy>
-    <delete dir="${basedir}/out" quiet="true"/>
-  </target>
+        <concat destfile="${output.combined}" append="true">
+            <filelist dir="${basedir}/"
+                      files="spark.util.js,spark.loader.js,spark.field.js,spark.form.js,spark.grid.js,spark.io.js,spark.nav.js,spark.notify.js,spark.strings.js"/>
+        </concat>
+
+        <copy file="${output.combined}" tofile="${output.minified}"/>
+    </target>
+
+    <target name="document">
+        <!-- Document source JavaScript files using JSDoc3. -->
+        <property environment="env"/>
+        <property name="jsdoc.home" value="C:/Users/${env.USERNAME}/AppData/Roaming/npm"/>
+        <exec executable="${jsdoc.home}/jsdoc.cmd">
+            <arg value="."/>
+        </exec>
+        <delete dir="${basedir}/../docs" quiet="true"/>
+        <copy todir="${basedir}/../docs">
+            <fileset dir="${basedir}/out"/>
+        </copy>
+        <delete dir="${basedir}/out" quiet="true"/>
+    </target>
 
 </project>

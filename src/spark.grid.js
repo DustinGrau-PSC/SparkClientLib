@@ -1,7 +1,7 @@
 /**
  * @file Singleton object for common grid operations.
  * @author Progress Services
- * @copyright Progress Software 2015-2016
+ * @copyright Progress Software 2015-2017
  * @license Apache-2.0
  */
 if (window.spark && kendo) {
@@ -20,11 +20,17 @@ if (window.spark && kendo) {
          * @param {object} event Event object
          * @returns {object} Selected record
          */
-        getSelectedRecord: function(event){
-            // Using the given event, obtain the current record.
-            var grid = event.sender;
+        getSelectedRecord: function(event, grid){
             if (grid) {
-                return grid.dataItem(grid.select());
+                // Using grid and row, obtain the current record.
+                var tr = $(event.target).closest("tr");
+                return grid.dataItem(tr);
+            } else {
+                // Using the given event, obtain the current record.
+                grid = event.sender;
+                if (grid) {
+                    return grid.dataItem(grid.select());
+                }
             }
             return {};
         },
@@ -37,11 +43,20 @@ if (window.spark && kendo) {
          * @returns {object} Object with columns, sort, filter, and group properties
          */
         getViewState: function(grid) {
+            if (grid) {
+                return {
+                    columns: grid.columns || [],
+                    filter: grid.dataSource.filter(),
+                    group: grid.dataSource.group(),
+                    sort: grid.dataSource.sort()
+                };
+            }
+
             return {
-                columns: grid.columns,
-                sort: grid.dataSource.sort(),
-                filter: grid.dataSource.filter(),
-                group: grid.dataSource.group()
+                columns: null,
+                filter: null,
+                group: null,
+                sort: null
             };
         },
 
@@ -52,9 +67,26 @@ if (window.spark && kendo) {
          * @returns {object} Simple text container with column value
          */
         createReadOnlyEditor: function(){
-        	return function(container, options){
-        		container.text(options.model[options.field]);
-        	}
+            return function(container, options){
+                container.text(options.model[options.field]);
+            }
+        },
+
+        /**
+         * Lazy-initializer for creating an masked text editor field.
+         * @method createFormattedFieldEditor
+         * @memberof spark.grid
+         * @param {object} fieldOptions Properties for widget
+         * @returns {object} Instance of a {@link spark.field.createFormattedField}
+         */
+        createFormattedFieldEditor: function(fieldOptions){
+            return function(container, options){
+                options.sparkEditor = spark.field.createFormattedField($('<input data-bind="value:' + options.field + '"/>').appendTo(container), fieldOptions);
+                setTimeout(function(){
+                    var data = options.model[options.field] || options.model.defaults[options.field];
+                    options.sparkEditor.value(data);
+                }, 20);
+            }
         },
 
         /**
@@ -65,21 +97,21 @@ if (window.spark && kendo) {
          * @returns {object} Instance of a {@link spark.field.createMultiLookup}
          */
         createMultiLookup: function(fieldOptions){
-        	return function(container, options){
-				options.sparkEditor = spark.field.createMultiLookup($('<input data-bind="value:' + options.field + '"/>').appendTo(container), fieldOptions);
-				setTimeout(function(){
-					/**
-					 * Convert comma-delimited data into an array, and assign as
-					 * values of the new multi-select field. For some reason we
-					 * need to do this with a small delay after widget creation.
-					 */
-					var data = options.model[options.field] || options.model.defaults[options.field];
-					if (typeof(data) === "string" && data.indexOf(",") > -1) {
-						data = data.split(",");
-					}
-					options.sparkEditor.value(data);
-				}, 20);
-        	}
+            return function(container, options){
+                options.sparkEditor = spark.field.createMultiLookup($('<input data-bind="value:' + options.field + '"/>').appendTo(container), fieldOptions);
+                setTimeout(function(){
+                    /**
+                     * Convert comma-delimited data into an array, and assign as
+                     * values of the new multi-select field. For some reason we
+                     * need to do this with a small delay after widget creation.
+                     */
+                    var data = options.model[options.field] || options.model.defaults[options.field];
+                    if (typeof(data) === "string" && data.indexOf(",") > -1) {
+                        data = data.split(",");
+                    }
+                    options.sparkEditor.value(data);
+                }, 20);
+            }
         },
 
         /**
@@ -90,13 +122,13 @@ if (window.spark && kendo) {
          * @returns {object} Instance of a {@link spark.field.createSimpleLookup}
          */
         createSimpleLookupEditor: function(fieldOptions){
-        	return function(container, options){
-        		options.sparkEditor = spark.field.createSimpleLookup($('<input data-bind="value:' + options.field + '"/>').appendTo(container), fieldOptions);
-        		setTimeout(function(){
-        			var data = options.model[options.field] || options.model.defaults[options.field];
-        			options.sparkEditor.value(data);
-				}, 20);
-        	}
+            return function(container, options){
+                options.sparkEditor = spark.field.createSimpleLookup($('<input data-bind="value:' + options.field + '"/>').appendTo(container), fieldOptions);
+                setTimeout(function(){
+                    var data = options.model[options.field] || options.model.defaults[options.field];
+                    options.sparkEditor.value(data);
+                }, 20);
+            }
         },
 
         /**
@@ -107,13 +139,13 @@ if (window.spark && kendo) {
          * @returns {object} Instance of a {@link spark.field.createSingleLookup}
          */
         createSingleLookupEditor: function(fieldOptions){
-        	return function(container, options){
+            return function(container, options){
                 options.sparkEditor = spark.field.createSingleLookup($('<input data-bind="value:' + options.field + '"/>').appendTo(container), fieldOptions);
-        		setTimeout(function(){
-        			var data = options.model[options.field] || options.model.defaults[options.field];
-					options.sparkEditor.value(data);
-				}, 20);
-        	}
+                setTimeout(function(){
+                    var data = options.model[options.field] || options.model.defaults[options.field];
+                    options.sparkEditor.value(data);
+                }, 20);
+            }
         },
 
         /**
@@ -124,9 +156,9 @@ if (window.spark && kendo) {
          * @returns {object} Instance of a {@link spark.field.createInvokeLookup}
          */
         createInvokeLookupEditor: function(fieldOptions){
-        	return function(container, options){
+            return function(container, options){
                 options.sparkEditor = spark.field.createInvokeLookup($('<input data-bind="value:' + options.field + '"/>').appendTo(container), fieldOptions);
-        	}
+            }
         }
 
     };
