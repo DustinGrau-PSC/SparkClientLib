@@ -73,7 +73,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="spark.notify.js.html">spark.notify.js</a>, <a href="spark.notify.js.html#line9">line 9</a>
+        <a href="spark.notify.js.html">spark.notify.js</a>, <a href="spark.notify.js.html#line12">line 12</a>
     </li></ul></dd>
     
 
@@ -109,14 +109,14 @@
 
     
 
-    <h4 class="name" id=".setNotificationArea"><span class="type-signature">(static) </span>setNotificationArea<span class="signature">(selector, options)</span><span class="type-signature"> &rarr; {object}</span></h4>
+    <h4 class="name" id=".responseHasErrors"><span class="type-signature">(static) </span>responseHasErrors<span class="signature">(responseObject)</span><span class="type-signature"> &rarr; {boolean}</span></h4>
 
     
 
 
 
 <div class="description">
-    Sets a specific DOM element for handling notification events.
+    Checks a response object for a potential "_errors" property, and messages with an error type.
 </div>
 
 
@@ -152,13 +152,13 @@
 
         <tr>
             
-                <td class="name"><code>selector</code></td>
+                <td class="name"><code>responseObject</code></td>
             
 
             <td class="type">
             
                 
-<span class="param-type">string</span>
+<span class="param-type">Object</span>
 
 
             
@@ -168,30 +168,7 @@
 
             
 
-            <td class="description last">Target DOM element as <a href="https://api.jquery.com/category/selectors/">jQuery selector</a></td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>options</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">object</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">Properties for widget</td>
+            <td class="description last">Response object from AJAX call</td>
         </tr>
 
     
@@ -232,7 +209,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="spark.js.html">spark.js</a>, <a href="spark.js.html#line2027">line 2027</a>
+        <a href="spark.notify.js.html">spark.notify.js</a>, <a href="spark.notify.js.html#line70">line 70</a>
     </li></ul></dd>
     
 
@@ -258,10 +235,6 @@
 <h5>Returns:</h5>
 
         
-<div class="param-desc">
-    <a href="http://docs.telerik.com/kendo-ui/api/javascript/ui/notification">kendo.ui.Notification</a>
-</div>
-
 
 
 <dl>
@@ -270,7 +243,7 @@
     </dt>
     <dd>
         
-<span class="param-type">object</span>
+<span class="param-type">boolean</span>
 
 
     </dd>
@@ -285,7 +258,7 @@
 
     
 
-    <h4 class="name" id=".setNotificationArea"><span class="type-signature">(static) </span>setNotificationArea<span class="signature">(selector, options)</span><span class="type-signature"> &rarr; {object}</span></h4>
+    <h4 class="name" id=".setNotificationArea"><span class="type-signature">(static) </span>setNotificationArea<span class="signature">(selector, options)</span><span class="type-signature"> &rarr; {Object}</span></h4>
 
     
 
@@ -357,7 +330,7 @@
             <td class="type">
             
                 
-<span class="param-type">object</span>
+<span class="param-type">Object</span>
 
 
             
@@ -408,7 +381,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="spark.notify.js.html">spark.notify.js</a>, <a href="spark.notify.js.html#line16">line 16</a>
+        <a href="spark.notify.js.html">spark.notify.js</a>, <a href="spark.notify.js.html#line19">line 19</a>
     </li></ul></dd>
     
 
@@ -446,455 +419,7 @@
     </dt>
     <dd>
         
-<span class="param-type">object</span>
-
-
-    </dd>
-</dl>
-
-    
-
-
-
-        
-    
-
-    
-
-    
-</article>
-
-</section>
-
-
-
-
-
-
-
-<section>
-
-<header>
-    
-        <h2>
-            <span class="ancestors"><a href="spark.html">spark</a>.</span>notify</h2>
-        
-    
-</header>
-
-<article>
-    <div class="container-overview">
-    
-        
-            <div class="description">Notification operations for PMFO.</div>
-        
-
-        
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="spark.js.html">spark.js</a>, <a href="spark.js.html#line2020">line 2020</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-        
-    
-    </div>
-
-    
-
-    
-
-    
-
-     
-
-    
-
-    
-
-    
-        <h3 class="subsection-title">Methods</h3>
-
-        
-            
-
-    
-
-    <h4 class="name" id=".setNotificationArea"><span class="type-signature">(static) </span>setNotificationArea<span class="signature">(selector, options)</span><span class="type-signature"> &rarr; {object}</span></h4>
-
-    
-
-
-
-<div class="description">
-    Sets a specific DOM element for handling notification events.
-</div>
-
-
-
-
-
-
-
-
-
-    <h5>Parameters:</h5>
-    
-
-<table class="params">
-    <thead>
-    <tr>
-        
-        <th>Name</th>
-        
-
-        <th>Type</th>
-
-        
-
-        
-
-        <th class="last">Description</th>
-    </tr>
-    </thead>
-
-    <tbody>
-    
-
-        <tr>
-            
-                <td class="name"><code>selector</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">string</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">Target DOM element as <a href="https://api.jquery.com/category/selectors/">jQuery selector</a></td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>options</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">object</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">Properties for widget</td>
-        </tr>
-
-    
-    </tbody>
-</table>
-
-
-
-
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="spark.js.html">spark.js</a>, <a href="spark.js.html#line2027">line 2027</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-
-
-
-
-
-
-
-
-<h5>Returns:</h5>
-
-        
-<div class="param-desc">
-    <a href="http://docs.telerik.com/kendo-ui/api/javascript/ui/notification">kendo.ui.Notification</a>
-</div>
-
-
-
-<dl>
-    <dt>
-        Type
-    </dt>
-    <dd>
-        
-<span class="param-type">object</span>
-
-
-    </dd>
-</dl>
-
-    
-
-
-
-        
-            
-
-    
-
-    <h4 class="name" id=".setNotificationArea"><span class="type-signature">(static) </span>setNotificationArea<span class="signature">(selector, options)</span><span class="type-signature"> &rarr; {object}</span></h4>
-
-    
-
-
-
-<div class="description">
-    Sets a specific DOM element for handling notification events.
-</div>
-
-
-
-
-
-
-
-
-
-    <h5>Parameters:</h5>
-    
-
-<table class="params">
-    <thead>
-    <tr>
-        
-        <th>Name</th>
-        
-
-        <th>Type</th>
-
-        
-
-        
-
-        <th class="last">Description</th>
-    </tr>
-    </thead>
-
-    <tbody>
-    
-
-        <tr>
-            
-                <td class="name"><code>selector</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">string</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">Target DOM element as <a href="https://api.jquery.com/category/selectors/">jQuery selector</a></td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>options</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">object</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">Properties for widget</td>
-        </tr>
-
-    
-    </tbody>
-</table>
-
-
-
-
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="spark.notify.js.html">spark.notify.js</a>, <a href="spark.notify.js.html#line16">line 16</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-
-
-
-
-
-
-
-
-<h5>Returns:</h5>
-
-        
-<div class="param-desc">
-    <a href="http://docs.telerik.com/kendo-ui/api/javascript/ui/notification">kendo.ui.Notification</a>
-</div>
-
-
-
-<dl>
-    <dt>
-        Type
-    </dt>
-    <dd>
-        
-<span class="param-type">object</span>
+<span class="param-type">Object</span>
 
 
     </dd>
@@ -926,7 +451,7 @@
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.4.2</a> on Fri Mar 03 2017 07:14:45 GMT-0500 (Eastern Standard Time)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.4.2</a> on Tue Apr 11 2017 15:18:26 GMT-0400 (Eastern Daylight Time)
 </footer>
 
 <script> prettyPrint(); </script>

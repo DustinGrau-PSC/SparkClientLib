@@ -4,18 +4,19 @@
  * @copyright Progress Software 2015-2017
  * @license Apache-2.0
  */
-(function($, window){
+(function($, kendo){
     "use strict";
 
-    if ($ && typeof window.spark !== "undefined") {
+    if ($ && kendo && typeof window.spark !== "undefined") {
 
+        // This should directly extend the existing "spark" object.
         window.spark = $.extend(window.spark, {
 
             /**
              * Obtain any URL parameters as a JSON object.
              * @method getUrlParams
              * @memberof spark
-             * @returns {object} URL params as JSON object
+             * @returns {Object} URL params as JSON object
              */
             getUrlParams: function(){
                 /**
@@ -23,8 +24,13 @@
                  * "Allows for more characters in the search string. It uses a reviver function for URI decoding:"
                  * http://stackoverflow.com/questions/8648892/convert-url-parameters-to-a-javascript-object
                  */
+                var /** Object */ retVal = {};
                 var search = location.search.substring(1);
-                return search ? JSON.parse('{"' + search.replace(/&/g, '","').replace(/=/g,'":"') + '"}', function(key, value){ return key === "" ? value : decodeURIComponent(value) }) : {};
+                if (search) {
+                    var searchVal = search.replace(/&/g, '","').replace(/=/g,'":"');
+                    retVal = JSON.parse('{"' + searchVal + '"}', function(key, value){ return key === "" ? value : decodeURIComponent(value) });
+                }
+                return retVal;
             },
 
             /**
@@ -35,19 +41,20 @@
              * @returns {boolean} Success of operation
              */
             clearPersistentObject: function(key){
+                var /** boolean */ retVal = false;
                 var storage = window.localStorage || null;
                 if (storage && storage.clearObject) {
                     storage.clearObject(key);
-                    return true;
+                    retVal = true;
                 } else if (storage) {
                     delete storage[key];
-                    return true;
+                    retVal = true;
                 } else {
                     // Fall back to using cookies.
                     window.spark.setCookie(key, "");
-                    return true;
+                    retVal = true;
                 }
-                return false;
+                return retVal;
             },
 
             /**
@@ -59,19 +66,20 @@
              * @returns {boolean} Success of operation
              */
             setPersistentObject: function(key, value){
+                var /** boolean */ retVal = false;
                 var storage = window.localStorage || null;
                 if (storage && storage.getObject) {
                     storage.setObject(key, value);
-                    return true;
+                    retVal = true;
                 } else if (storage) {
                     storage[key] = JSON.stringify(value);
-                    return true;
+                    retVal = true;
                 } else {
                     // Fall back to using cookies.
                     window.spark.setCookie(key, JSON.stringify(value));
-                    return true;
+                    retVal = true;
                 }
-                return false;
+                return retVal;
             },
 
             /**
@@ -82,24 +90,29 @@
              * @returns {string} Value of persistent object (stringified)
              */
             getPersistentObject: function(key){
+                var /** string */ retVal = "";
                 var storage = window.localStorage || null;
                 if (storage && storage.getObject) {
                     return storage.getObject(key);
                 } else if (storage) {
-                    var storageValue = storage[key];
+                    var /** string */ storageValue = storage[key];
                     if (typeof(storageValue) === "string") {
                         // Only strings should be stored.
-                        return JSON.parse(storageValue);
+                        try {
+                            retVal = JSON.parse(storageValue);
+                        } catch(e){}
                     }
                 } else {
                     // Fall back to using cookies.
-                    var cookieValue = window.spark.getCookie(key);
+                    var /** string */ cookieValue = window.spark.getCookie(key);
                     if (typeof(cookieValue) === "string") {
                         // Only strings should be stored.
-                        return JSON.parse(cookieValue);
+                        try {
+                            retVal = JSON.parse(cookieValue);
+                        } catch(e){}
                     }
                 }
-                return "";
+                return retVal;
             },
 
             /**
@@ -110,13 +123,14 @@
              * @returns {boolean} Success of operation
              */
             clearSessionObject: function(key){
+                var /** boolean */ retVal = false;
                 var storage = window.sessionStorage || null;
                 if (storage && storage.clearObject) {
                     storage.clearObject(key);
-                    return true;
+                    retVal = true;
                 } else if (storage) {
                     delete storage[key];
-                    return true;
+                    retVal = true;
                 }
                 return false;
             },
@@ -130,15 +144,16 @@
              * @returns {boolean} Success of operation
              */
             setSessionObject: function(key, value){
+                var /** boolean */ retVal = false;
                 var storage = window.sessionStorage || null;
                 if (storage && storage.getObject) {
                     storage.setObject(key, value);
-                    return true;
+                    retVal = true;
                 } else if (storage) {
                     storage[key] = JSON.stringify(value);
-                    return true;
+                    retVal = true;
                 }
-                return false;
+                return retVal;
             },
 
             /**
@@ -149,17 +164,19 @@
              * @returns {string} Value of session object (stringified)
              */
             getSessionObject: function(key){
+                var /** string */ retVal = "";
                 var storage = window.sessionStorage || null;
                 if (storage && storage.getObject) {
-                    return storage.getObject(key);
+                    // Only strings should be stored.
+                    retVal = storage.getObject(key);
                 } else if (storage) {
                     var value = storage[key];
                     if (typeof(storage[key]) === "string") {
                         // Only strings should be stored.
-                        return JSON.parse(value);
+                        retVal = JSON.parse(value);
                     }
                 }
-                return "";
+                return retVal;
             },
 
             /**
@@ -192,7 +209,7 @@
              * @memberof spark
              * @param {string} key - Name of the cookie to set.
              * @param {string} value - Value of the set cookie.
-             * @param {integers} exdays - Days to live for cookie.
+             * @param {number} exdays - Days to live for cookie.
              */
             setCookie: function(key, value, exdays){
                 var d = new Date();
@@ -205,7 +222,7 @@
              * Returns today's date without a date component.
              * @method getToday
              * @memberof spark
-             * @returns {date} Today's date
+             * @returns {Object} Today's date, as JavaScript Date object
              */
             getToday: function(){
                 var today = new Date();
@@ -216,8 +233,8 @@
              * Get a date by adding/subtracting days from today.
              * @method getDateByDays
              * @memberof spark
-             * @param {integer} numDays - Number of days to subtract/add.
-             * @returns {date} New date before/after given days
+             * @param {number} numDays - Number of days to subtract/add.
+             * @returns {Object} New date before/after given days, as JavaScript Date object
              */
             getDateByDays: function(numDays){
                 if (typeof(numDays) == "number" && numDays != 0) {
@@ -232,8 +249,8 @@
              * Get a date by adding/subtracting weeks from this week.
              * @method getDateByWeeks
              * @memberof spark
-             * @param {integer} numWeeks - Number of weeks to subtract/add.
-             * @returns {date} New date before/after given weeks
+             * @param {number} numWeeks - Number of weeks to subtract/add.
+             * @returns {Object} New date before/after given weeks, as JavaScript Date object
              */
             getDateByWeeks: function(numWeeks){
                 if (typeof(numWeeks) == "number" && numWeeks != 0) {
@@ -250,8 +267,8 @@
              * @method getTemplate
              * @memberof spark
              * @param {string} selector - JQuery selector for locating template.
-             * @param {object} data - JSON object to be applied to template.
-             * @returns {object} Kendo template object instance
+             * @param {Object} data - JSON object to be applied to template.
+             * @returns {Object} Kendo template object instance
              */
             getTemplate: function(selector, data){
                 if ($(selector).length) {
@@ -265,8 +282,8 @@
                 return null;
             }
 
-        }); // window.spark
-    }
+        }); // $.extend window.spark
+    } // if
 
     /**
      * Prepare custom methods to extend functionality of DOM storage.
@@ -315,6 +332,6 @@
                 }
             }
         };
-    }
+    } // if window.storage
 
-})(jQuery, window);
+})(window.jQuery, window.kendo);

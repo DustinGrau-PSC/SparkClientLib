@@ -4,13 +4,13 @@ Client-side helper library for Telerik KendoUI + Progress JSDO applications.
 
 Requirements
 ====================
-Apache Ant 1.8.x+ (Building)
+Apache Ant 1.9.x+ (Building)
 
-jQuery 1.9.x (Runtime)
+jQuery 1.12.x (Runtime)
 
-KendoUI 2015.3+ (Runtime)
+KendoUI 2017.1+ (Runtime)
 
-Progress JSDO 4.2+ (Runtime)
+Progress JSDO 4.3+ (Runtime)
 
 Bootstrap 3.3.x (Optional)
 
@@ -31,7 +31,7 @@ Additionally, there is a **/lib/plugins.js** file that provides for extended fea
 Contributions / Changes
 ====================
 
-This library should be ready to use as-is. However, if modifications are needed they can be made within the **/src/** directory. To prepare for actual usage, run **"ant minify"** from within the **/src/** directory to create a new minified version of the **/lib/spark.min.js** file.
+This library should be ready to use as-is. However, if modifications are needed they can be made within the **/src/** directory. To prepare for actual usage, run **"ant compile"** from within the **/src/** directory to create a new minified version of the **/lib/spark.min.js** file.
 
 Documentation
 ====================

@@ -4,26 +4,29 @@
  * @copyright Progress Software 2015-2017
  * @license Apache-2.0
  */
-if (window.spark && kendo) {
+(function($, kendo){
+    "use strict";
 
-    /**
-     * Navigation operations for PMFO.
-     * @namespace spark.nav
-     * @memberof spark
-     */
-    window.spark.nav = (function(kendo){
-        return {
+    if ($ && kendo && window.spark) {
+
+        /**
+         * Navigation operations for PMFO.
+         * @namespace spark.nav
+         * @memberof spark
+         */
+        window.spark.nav = {
+
             /**
              * Create a simplistic path-based router for site navigation.
              * @method createSimpleRouter
              * @memberof spark.nav
-             * @param {object} options Properties object for widget
+             * @param {Object} options Properties object for widget
              * @param {string} options.filePathPrefix Relative location of physical files
              * @param {string} options.mainContentID ID for loading content dynamically
              * @param {method} options.getLandingPage Obtain name of landing page file
              * @param {method} options.onChange Event callback on each change of route
              * @param {method} options.onLoad Event callback after loading extra files
-             * @returns {object} [kendo.Router]{@link http://docs.telerik.com/kendo-ui/api/javascript/router}
+             * @returns {Object} [kendo.Router]{@link http://docs.telerik.com/kendo-ui/api/javascript/router}
              */
             createSimpleRouter: function(options){
                 // Options property must be an object.
@@ -63,9 +66,11 @@ if (window.spark && kendo) {
                      * Returning to the index page may require the loading of a specific
                      * landing page. Therefore we must assume a callback will be required
                      * and so a promise will be used to track the result. This allows
-                     * the getLandingPage method to be asynchronous as well.
+                     * the getLandingPage method to be asynchronous as well. Possible
+                     * values are either a physical page (View+Controller) or a URI.
+                     * For a URI the router will navigate to the target location.
                      */
-                    var promise = jQuery.Deferred();
+                    var promise = $.Deferred();
                     if (options.getLandingPage) {
                         // Replace local promise with returned promise.
                         promise = options.getLandingPage();
@@ -76,10 +81,13 @@ if (window.spark && kendo) {
 
                     // Setup for successful response from promise.
                     promise.done(function(page){
-                        if (page !== "") {
-                            // Load the model/view files and initialize page.
+                        if ((page || "").startsWith("#/")) {
+                            // Navigate to the relative route and load from there.
+                            router.navigate(page);
+                        } else if ((page || "") !== "") {
+                            // Load the view/controller files and initialize page.
                             var path = options.filePathPrefix + page;
-                            spark.loader.loadExtScreen(path, options.mainContentID, page)
+                            window.spark.loader.loadExtScreen(path, options.mainContentID, page)
                                 .complete(function(){
                                     if (options.onLoad) {
                                         options.onLoad(page, path);
@@ -95,7 +103,7 @@ if (window.spark && kendo) {
                 });
                 router.route("/logout", function(){
                     // Perform a logout and redirect to login page.
-                    spark.getJsdoSession().logout()
+                    window.spark.getJsdoSession().logout()
                         .then(function(){
                             if (options.onLogout) {
                                 options.onLogout(); // Perform post-logout action.
@@ -105,7 +113,7 @@ if (window.spark && kendo) {
                 router.route("/:page", function(page){
                     // Load the model/view files and initialize page.
                     var path = options.filePathPrefix + page;
-                    spark.loader.loadExtScreen(path, options.mainContentID, page)
+                    window.spark.loader.loadExtScreen(path, options.mainContentID, page)
                         .complete(function(){
                             if (options.onLoad) {
                                 options.onLoad(page, path);
@@ -115,7 +123,7 @@ if (window.spark && kendo) {
                 router.route("/:sec/:page", function(sec, page){
                     // Load the model/view files and initialize page.
                     var path = options.filePathPrefix + sec + "/" + page;
-                    spark.loader.loadExtScreen(path, options.mainContentID, page)
+                    window.spark.loader.loadExtScreen(path, options.mainContentID, page)
                         .complete(function(){
                             if (options.onLoad) {
                                 options.onLoad(page, path, sec);
@@ -125,7 +133,7 @@ if (window.spark && kendo) {
                 router.route("/:sec/:sub/:page", function(sec, sub, page){
                     // Load the model/view files and initialize page.
                     var path = options.filePathPrefix + sec + "/" + sub + "/" + page;
-                    spark.loader.loadExtScreen(path, options.mainContentID, page)
+                    window.spark.loader.loadExtScreen(path, options.mainContentID, page)
                         .complete(function(){
                             if (options.onLoad) {
                                 options.onLoad(page, path, sec, sub);
@@ -141,18 +149,19 @@ if (window.spark && kendo) {
              * @method createVerticalStackMenu
              * @memberof spark.nav
              * @param {string} selector Target DOM element as [jQuery selector]{@link https://api.jquery.com/category/selectors/}
-             * @param {object[]} menuData Array of menu objects (parents + children)
+             * @param {Array(Object)} menuData Array of menu objects (parents + children)
              * @param {string} menuData.text Parent item title
              * @param {string} menuData.icon Font-Awesome icon class
-             * @param {object[]} menuData.items Array of child items
+             * @param {Array(Object)} menuData.items Array of child items
              * @param {string} menuData.items.text Child item title
              * @param {string} menuData.items.url Child item URL
              * @returns void
              */
             createVerticalStackMenu: function(selector, menuData){
-                if ($(selector)) {
+                var el = $(selector);
+                if (el) {
                     // Destroy any previous contents.
-                    $(selector).empty();
+                    el.empty();
 
                     // Cycle through menu data, building structure.
                     var navItem = $('<nav class="nav-primary hidden-xs" data-ride="collapse" role="navigation"></nav>');
@@ -160,8 +169,8 @@ if (window.spark && kendo) {
                     if (typeof(menuData) === "object") {
                         $.each(menuData, function(i, parent){
                             var currentPath = ""; // Identifies the current link in use.
-                            if (app.currentPage.path && app.currentPage.path != "") {
-                                currentPath = "#" + app.currentPage.path.replace("app/views", "");
+                            if (window.app && window.app.currentPage.path && window.app.currentPage.path != "") {
+                                currentPath = "#" + window.app.currentPage.path.replace("app/views", "");
                             }
 
                             // Construct the parent menu item.
@@ -205,12 +214,13 @@ if (window.spark && kendo) {
                         });
                     }
                     navItem.append(navList);
-                    $(selector).append(navItem);
+                    el.append(navItem);
                 } else {
                     console.info("No menu element has been defined.");
                 }
             }
-        };
-    })(kendo);
 
-}
+        }; // window.spark.nav
+
+    } // if
+})(window.jQuery, window.kendo);
